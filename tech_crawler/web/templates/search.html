@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Search - Tech Investment Crawler{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <h1>Search Articles</h1>
+    
+    <form action="/search" method="get" class="search-form-large">
+        <input 
+            type="text" 
+            name="q" 
+            class="search-input-large" 
+            placeholder="Search for companies, trends, keywords..."
+            value="{{ query }}"
+            autofocus
+        >
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    {% if query %}
+    <div class="search-results">
+        <h2>Results for "{{ query }}"</h2>
+        
+        {% if results %}
+        <p class="result-count">Found {{ results|length }} article{{ 's' if results|length != 1 else '' }}</p>
+        
+        <div class="articles-list">
+            {% for article in results %}
+            <div class="article-card">
+                <div class="article-header">
+                    <h3><a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">{{ article.title }}</a></h3>
+                    <span class="source-badge">{{ article.source }}</span>
+                </div>
+                <p class="article-summary">{{ article.summary[:300] if article.summary else 'No summary available' }}...</p>
+                <div class="article-footer">
+                    <span class="article-date">{{ article.published_date[:10] }}</span>
+                    {% if article.tags %}
+                    <div class="article-tags">
+                        {% for tag in article.tags %}
+                        <span class="tag">{{ tag.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-results">No articles found matching "{{ query }}". Try different keywords.</p>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Enter a search term to find articles about companies, trends, or topics.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

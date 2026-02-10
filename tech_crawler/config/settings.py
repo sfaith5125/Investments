@@ -50,6 +50,22 @@ class Settings:
             "url": "https://arxiv.org/rss/cs.AI",
             "type": "rss",
         },
+        {
+            "name": "Wired",
+            "url": "https://www.wired.com/feed/category/tech/latest/rss",
+            "type": "rss",
+        },
+        {
+            "name": "Ars Technica",
+            "url": "https://arstechnica.com/feed/",
+            "type": "rss",
+        },
+        {
+            "name": "Dev.to",
+            "url": "https://dev.to/feed",
+            "type": "rss",
+        },
+
     ]
 
     # Tech companies to track (S&P 500 tech companies)

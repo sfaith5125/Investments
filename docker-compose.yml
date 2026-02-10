@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  crawler:
+    build: .
+    container_name: tech-investment-crawler
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=sqlite:///tech_crawler.db
+      - RATE_LIMIT_DELAY=1.0
+      - REQUEST_TIMEOUT=10
+    volumes:
+      - ./data:/app/data
+      - ./tech_crawler.db:/app/tech_crawler.db
+    command: python main.py
+
+  web:
+    build: .
+    container_name: tech-investment-web
+    environment:
+      - DEBUG=False
+      - FLASK_ENV=production
+      - DATABASE_URL=sqlite:///tech_crawler.db
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./tech_crawler.db:/app/tech_crawler.db
+    command: python web_server.py
+    depends_on:
+      - crawler

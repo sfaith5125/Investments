@@ -52,7 +52,7 @@ class Settings:
         },
         {
             "name": "Wired",
-            "url": "https://www.wired.com/feed/category/tech/latest/rss",
+            "url": "https://www.wired.com/feed/rss",
             "type": "rss",
         },
         {
@@ -65,7 +65,36 @@ class Settings:
             "url": "https://dev.to/feed",
             "type": "rss",
         },
-
+        {
+            "name": "The Register",
+            "url": "https://www.theregister.com/headlines.atom",
+            "type": "rss",
+        },
+        {
+            "name": "VentureBeat",
+            "url": "https://venturebeat.com/feed/",
+            "type": "rss",
+        },
+        {
+            "name": "Engadget",
+            "url": "https://www.engadget.com/rss.xml",
+            "type": "rss",
+        },
+        {
+            "name": "Slashdot",
+            "url": "https://slashdot.org/rss/slashdot.rss",
+            "type": "rss",
+        },
+        {
+            "name": "Papers With Code",
+            "url": "https://feeds.paperswithcode.com/latest",
+            "type": "rss",
+        },
+        {
+            "name": "OpenAI Blog",
+            "url": "https://openai.com/blog/rss.xml",
+            "type": "rss",
+        },
     ]
 
     # Tech companies to track (S&P 500 tech companies)

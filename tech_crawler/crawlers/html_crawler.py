@@ -79,12 +79,15 @@ class HTMLCrawler(BaseCrawler):
                         if summary_elem else ""
                     )
 
+                    full_content = self.fetch_full_content(url)
+
                     if title and url:
                         self.add_article(
                             title=title,
                             url=url,
                             summary=summary,
                             published_date=datetime.now(),
+                            content=full_content or summary,
                         )
 
                 except Exception as e:

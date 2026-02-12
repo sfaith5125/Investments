@@ -24,7 +24,11 @@
 
         <div class="article-content">
             {% if full_content %}
-            <p>{{ full_content }}</p>
+            {% for paragraph in full_content.split('\n\n') %}
+            {% if paragraph.strip() %}
+            <p>{{ paragraph.strip() }}</p>
+            {% endif %}
+            {% endfor %}
             {% else %}
             <p class="no-content">No content available for this article.</p>
             {% endif %}
@@ -32,7 +36,7 @@
 
         <div class="article-footer">
             <a href="{{ article.url }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
-                Read Full Article →
+                View Original Source →
             </a>
         </div>
     </article>

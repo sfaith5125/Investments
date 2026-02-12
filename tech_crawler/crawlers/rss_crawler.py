@@ -59,11 +59,13 @@ class RSSCrawler(BaseCrawler):
                     published_date = datetime.now()
 
                 if title and url:
+                    full_content = self.fetch_full_content(url)
                     self.add_article(
                         title=title,
                         url=url,
                         summary=summary,
                         published_date=published_date,
+                        content=full_content or summary,
                     )
 
             logger.info(

@@ -26,6 +26,16 @@ class Database:
         self.SessionLocal = sessionmaker(bind=self.engine)
         self._init_db()
 
+    @staticmethod
+    def _serialize_tags(tags) -> str:
+        if not tags:
+            return ""
+        if isinstance(tags, str):
+            return tags
+        if isinstance(tags, (list, tuple, set)):
+            return ",".join(str(tag).strip() for tag in tags if str(tag).strip())
+        return str(tags)
+
     def _init_db(self) -> None:
         """Initialize database tables"""
         try:
@@ -47,6 +57,9 @@ class Database:
             if existing:
                 # Update existing article
                 existing.updated_date = datetime.now(timezone.utc)
+                existing.summary = article_data.get("summary", existing.summary)
+                existing.content = article_data.get("content", existing.content)
+                existing.tags = self._serialize_tags(article_data.get("tags")) or existing.tags
                 logger.debug(f"Updated article: {article_data['title'][:50]}...")
             else:
                 # Create new article
@@ -57,6 +70,7 @@ class Database:
                     content=article_data.get("content", ""),
                     source=article_data.get("source", "Unknown"),
                     published_date=article_data.get("published_date", datetime.now(timezone.utc)),
+                    tags=self._serialize_tags(article_data.get("tags")),
                 )
                 session.add(article)
                 logger.debug(f"Added article: {article_data['title'][:50]}...")
@@ -90,9 +104,16 @@ class Database:
                         content=article_data.get("content", ""),
                         source=article_data.get("source", "Unknown"),
                         published_date=article_data.get("published_date", datetime.now(timezone.utc)),
+                        tags=self._serialize_tags(article_data.get("tags")),
                     )
                     session.add(article)
                     added_count += 1
+                else:
+                    existing.summary = article_data.get("summary", existing.summary)
+                    existing.content = article_data.get("content", existing.content)
+                    serialized_tags = self._serialize_tags(article_data.get("tags"))
+                    if serialized_tags:
+                        existing.tags = serialized_tags
 
             session.commit()
             logger.info(f"Added {added_count} new articles to database")
@@ -172,6 +193,18 @@ class Database:
         except Exception as e:
             logger.error(f"Error getting article count: {str(e)}")
             return 0
+        finally:
+            session.close()
+
+    def get_article_by_id(self, article_id: int) -> Optional[Article]:
+        """Fetch a single article by ID"""
+        session = self.SessionLocal()
+
+        try:
+            return session.query(Article).filter(Article.id == article_id).first()
+        except Exception as e:
+            logger.error(f"Error retrieving article {article_id}: {str(e)}")
+            return None
         finally:
             session.close()
 

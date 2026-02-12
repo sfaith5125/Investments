@@ -2,8 +2,13 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
+
+import requests
+from bs4 import BeautifulSoup
+
+from ..config import Settings
 
 
 logger = logging.getLogger(__name__)
@@ -60,6 +65,36 @@ class BaseCrawler(ABC):
         }
         self.articles.append(article)
         logger.info(f"Added article: {title[:50]}... from {self.source_name}")
+
+    def fetch_full_content(self, url: str) -> Optional[str]:
+        """Fetch full article content from the URL"""
+        try:
+            headers = {"User-Agent": Settings.USER_AGENT}
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=Settings.REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            article_element = soup.find("article")
+            if article_element:
+                paragraphs = article_element.find_all("p")
+            else:
+                paragraphs = soup.find_all("p")
+
+            chunks = []
+            for p in paragraphs:
+                text = p.get_text(strip=True)
+                if text:
+                    chunks.append(text)
+
+            content = "\n\n".join(chunks)
+            return content or None
+        except Exception as e:
+            logger.debug(f"Unable to fetch full content for {url}: {str(e)}")
+            return None
 
     def get_articles(self) -> List[Dict[str, Any]]:
         """Return all collected articles"""

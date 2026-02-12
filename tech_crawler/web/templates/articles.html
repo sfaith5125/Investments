@@ -68,13 +68,19 @@
             return;
         }
         
-        container.innerHTML = articles.map(article => `
+        container.innerHTML = articles.map(article => {
+            const summaryText = article.summary ? article.summary.trim() : 'No summary available';
+            const truncatedSummary = summaryText.length > 300 ? `${summaryText.substring(0, 300)}…` : summaryText;
+            const contentText = (article.content && article.content.trim()) || summaryText;
+            const contentHtml = formatContentHtml(contentText);
+
+            return `
             <div class="article-card">
                 <div class="article-header">
-                    <h3><a href="${article.url}" target="_blank" rel="noopener noreferrer">${article.title}</a></h3>
+                    <h3><a href="/article/${article.id}">${article.title}</a></h3>
                     <span class="source-badge">${article.source}</span>
                 </div>
-                <p class="article-summary">${article.summary ? article.summary.substring(0, 300) + '...' : 'No summary available'}</p>
+                <p class="article-summary">${truncatedSummary}</p>
                 <div class="article-footer">
                     <span class="article-date">${new Date(article.published_date).toLocaleDateString()}</span>
                     ${article.tags.length > 0 ? `
@@ -83,8 +89,19 @@
                         </div>
                     ` : ''}
                 </div>
+                <div class="article-slide" id="article-slide-${article.id}" aria-hidden="true">
+                    ${contentHtml}
+                </div>
+                <div class="article-actions">
+                    <button class="btn btn-secondary slide-toggle" data-target="article-slide-${article.id}" aria-expanded="false" aria-controls="article-slide-${article.id}">
+                        Show Full Article
+                    </button>
+                    <a href="/article/${article.id}" class="btn btn-secondary">View in App</a>
+                    <a href="${article.url}" class="btn btn-link" target="_blank" rel="noopener noreferrer">Original Source ↗</a>
+                </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     document.getElementById('source-filter').addEventListener('change', loadArticles);

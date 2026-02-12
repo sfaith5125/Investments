@@ -20,15 +20,71 @@ def create_app():
     
     @app.route('/')
     def index():
-        """Home page with dashboard"""
+        """Home page with dashboard and daily summary"""
         try:
             # Get statistics
             total_articles = db.get_article_count()
             sources = db.get_sources()
-            
+
+            # Get today's articles
+            today = datetime.utcnow().date()
+            articles_today = db.get_articles(limit=1000, days_back=1)
+            articles_today = [a for a in articles_today if a.published_date and a.published_date.date() == today]
+
+
+            # Generate summary
+            summary = f"<b>{len(articles_today)}</b> articles crawled today from <b>{len(set(a.source for a in articles_today))}</b> sources."
+            narrative = ""
+            topics_covered = []
+            if articles_today:
+                from collections import Counter
+                # Top sources
+                source_counts = Counter(a.source for a in articles_today)
+                top_sources = ', '.join([f"{src} ({cnt})" for src, cnt in source_counts.most_common(3)])
+                # Top tags
+                tag_list = []
+                for a in articles_today:
+                    if a.tags:
+                        tag_list.extend([t.strip() for t in a.tags.split(',') if t.strip()])
+                tag_counts = Counter(tag_list)
+                top_tags = ', '.join([f"{tag} ({cnt})" for tag, cnt in tag_counts.most_common(3)])
+                summary += f" Top sources: {top_sources}."
+                if top_tags:
+                    summary += f" Top tags: {top_tags}."
+
+                # Topics covered: top 10 tags
+                topics_covered = [tag for tag, _ in tag_counts.most_common(10)]
+
+                # Narrative summary
+                companies = [t for t in tag_list if t.isupper() and len(t) <= 6]
+                trends = [t for t in tag_list if t.isupper() and len(t) > 6]
+                company_counts = Counter(companies)
+                trend_counts = Counter(trends)
+                top_company = company_counts.most_common(1)
+                top_trend = trend_counts.most_common(1)
+
+                import re
+                words = []
+                for a in articles_today:
+                    words += re.findall(r'\b\w{5,}\b', (a.title or "") + " " + (a.summary or ""))
+                word_counts = Counter([w.lower() for w in words if w.lower() not in {"about","which","their","there","these","would","could","should","between","after","before","where","while","using","other","first","since","being","under","those","among","through","during","because","against","within","without","amongst","among","amongst"}])
+                top_words = ', '.join([w for w, _ in word_counts.most_common(3)])
+
+                narrative = "<b>Today's articles</b> covered topics such as "
+                if top_trend:
+                    narrative += f"<b>{top_trend[0][0].replace('_',' ').title()}</b>"
+                if top_company:
+                    narrative += f", with frequent mentions of <b>{top_company[0][0]}</b>"
+                if top_words:
+                    narrative += f", and discussed keywords like <b>{top_words}</b>"
+                narrative += "."
+            else:
+                narrative = "No articles crawled today."
+                topics_covered = []
+
             # Get recent relevant articles
             recent_articles = db.get_articles(limit=10, days_back=30)
-            
+
             # Format for display
             articles_data = []
             for article in recent_articles:
@@ -38,16 +94,20 @@ def create_app():
                     'url': article.url,
                     'source': article.source,
                     'summary': article.summary[:200] + '...' if article.summary and len(article.summary) > 200 else article.summary,
+                    'content': article.content,
                     'published_date': article.published_date.strftime('%Y-%m-%d %H:%M') if article.published_date else 'N/A',
                     'tags': article.tags.split(',') if article.tags else [],
                 })
-            
+
             return render_template(
                 'index.html',
                 total_articles=total_articles,
                 num_sources=len(sources),
                 sources=', '.join(sources),
                 articles=articles_data,
+                daily_summary=summary,
+                narrative_summary=narrative,
+                topics_covered=topics_covered,
             )
         except Exception as e:
             logger.error(f"Error loading dashboard: {str(e)}")
@@ -166,22 +226,8 @@ def create_app():
     def article_detail(article_id):
         """Article detail page"""
         try:
-            articles = db.get_articles(limit=1)
-            article = None
-            
-            for a in articles:
-                if a.id == article_id:
-                    article = a
-                    break
-            
-            if not article:
-                # Try to find in all articles with different query
-                articles = db.get_articles(limit=1000)
-                for a in articles:
-                    if a.id == article_id:
-                        article = a
-                        break
-            
+            article = db.get_article_by_id(article_id)
+
             if not article:
                 return render_template('error.html', error='Article not found'), 404
             

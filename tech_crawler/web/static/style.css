@@ -263,6 +263,35 @@ body {
     font-size: 0.875rem;
 }
 
+.article-slide {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease, border 0.3s ease;
+    background: #fff;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
+    border-left: 4px solid transparent;
+}
+
+.article-slide.open {
+    padding: 1rem;
+    border-left-color: var(--primary-color);
+}
+
+.article-slide p {
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+}
+
+.article-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
 .article-date {
     color: var(--text-secondary);
 }
@@ -371,6 +400,35 @@ body {
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
+.btn-secondary {
+    background: #e2e8f0;
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: #cbd5f5;
+    color: var(--dark-bg);
+    transform: translateY(-2px);
+}
+
+.slide-toggle.open {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-link {
+    background: transparent;
+    color: var(--primary-color);
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.btn-link:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+    transform: none;
+}
+
 .view-all {
     text-align: center;
     margin-top: 2rem;
@@ -396,6 +454,11 @@ body {
 
 .back-link:hover {
     color: var(--secondary-color);
+}
+
+.article-content p {
+    margin-bottom: 1rem;
+    line-height: 1.8;
 }
 
 .article-detail h1 {

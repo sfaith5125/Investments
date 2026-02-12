@@ -7,6 +7,39 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Escape HTML characters
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
+ * Convert plain text into paragraph HTML
+ */
+function formatContentHtml(text) {
+    if (!text) {
+        return '<p class="no-content">No additional content available.</p>';
+    }
+
+    const paragraphs = text
+        .split(/\n\s*\n/)
+        .map(p => p.trim())
+        .filter(Boolean);
+
+    if (!paragraphs.length) {
+        return '<p class="no-content">No additional content available.</p>';
+    }
+
+    return paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+}
+
+/**
  * Format date to readable string
  */
 function formatDate(dateString) {
@@ -206,3 +239,42 @@ function initializeDarkMode() {
 
 // Initialize dark mode on page load
 initializeDarkMode();
+
+/**
+ * Slide toggle controls for inline article content
+ */
+document.addEventListener('click', function(event) {
+    const toggle = event.target.closest('.slide-toggle');
+    if (!toggle) return;
+
+    const targetId = toggle.getAttribute('data-target');
+    const panel = document.getElementById(targetId);
+    if (!panel) return;
+
+    const isOpen = !panel.classList.contains('open');
+    panel.classList.toggle('open', isOpen);
+    toggle.classList.toggle('open', isOpen);
+
+    if (isOpen) {
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+    } else {
+        const currentHeight = panel.scrollHeight;
+        panel.style.maxHeight = currentHeight + 'px';
+        requestAnimationFrame(() => {
+            panel.style.maxHeight = '0px';
+        });
+    }
+
+    toggle.setAttribute('aria-expanded', isOpen);
+    panel.setAttribute('aria-hidden', (!isOpen).toString());
+
+    const showLabel = toggle.getAttribute('data-show-label') || 'Show Full Article';
+    const hideLabel = toggle.getAttribute('data-hide-label') || 'Hide Full Article';
+    toggle.textContent = isOpen ? hideLabel : showLabel;
+});
+
+window.addEventListener('resize', function() {
+    document.querySelectorAll('.article-slide.open').forEach(panel => {
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+    });
+});

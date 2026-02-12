@@ -1,3 +1,13 @@
+    {% if topics_covered %}
+    <div class="topics-covered" style="background:#f0fdf4;padding:0.75rem 1.5rem;margin-bottom:1.2rem;border-radius:0.5rem;font-size:1.02rem;">
+        <b>Topics Covered Today:</b>
+        <span style="display:inline-block;margin-left:0.5rem;">
+        {% for tag in topics_covered %}
+            <span class="tag" style="background:#bbf7d0;color:#166534;margin-right:0.4rem;padding:0.2rem 0.7rem;border-radius:9999px;font-size:0.95rem;">{{ tag }}</span>
+        {% endfor %}
+        </span>
+    </div>
+    {% endif %}
 {% extends "base.html" %}
 
 {% block title %}Dashboard - Tech Investment Crawler{% endblock %}
@@ -5,7 +15,20 @@
 {% block content %}
 <div class="dashboard">
     <h1>Investment Intelligence Dashboard</h1>
-    
+
+
+    {% if daily_summary %}
+    <div class="daily-summary" style="background:#e0e7ff;padding:1rem 1.5rem;margin-bottom:1rem;border-radius:0.5rem;font-size:1.1rem;">
+        {{ daily_summary|safe }}
+    </div>
+    {% endif %}
+
+    {% if narrative_summary %}
+    <div class="narrative-summary" style="background:#fef9c3;padding:1rem 1.5rem;margin-bottom:2rem;border-radius:0.5rem;font-size:1.05rem;">
+        {{ narrative_summary|safe }}
+    </div>
+    {% endif %}
+
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon">📰</div>
@@ -39,7 +62,7 @@
                 {% for article in articles %}
                 <div class="article-card">
                     <div class="article-header">
-                        <h3><a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">{{ article.title }}</a></h3>
+                        <h3><a href="{{ url_for('article_detail', article_id=article.id) }}">{{ article.title }}</a></h3>
                         <span class="source-badge">{{ article.source }}</span>
                     </div>
                     <p class="article-summary">{{ article.summary }}</p>
@@ -52,6 +75,25 @@
                             {% endfor %}
                         </div>
                         {% endif %}
+                    </div>
+                    <div class="article-slide" id="article-slide-{{ article.id }}" aria-hidden="true">
+                        {% set full_text = article.content or article.summary %}
+                        {% if full_text %}
+                            {% for paragraph in full_text.split('\n\n') %}
+                            {% if paragraph.strip() %}
+                            <p>{{ paragraph.strip() }}</p>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-content">No additional content available.</p>
+                        {% endif %}
+                    </div>
+                    <div class="article-actions">
+                        <button class="btn btn-secondary slide-toggle" data-target="article-slide-{{ article.id }}" aria-expanded="false" aria-controls="article-slide-{{ article.id }}">
+                            Show Full Article
+                        </button>
+                        <a href="{{ url_for('article_detail', article_id=article.id) }}" class="btn btn-secondary">View in App</a>
+                        <a href="{{ article.url }}" class="btn btn-link" target="_blank" rel="noopener noreferrer">Original Source ↗</a>
                     </div>
                 </div>
                 {% endfor %}
@@ -68,3 +110,5 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}{% endblock %}
